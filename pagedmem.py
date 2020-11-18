@@ -23,39 +23,50 @@ class PagedMem(AbstractWindowsCommand):
         self._config.add_option('PID', short_option='p', help='Process ID', action='store',type='str')
         self._config.add_option('LOGFILE', help='Logfile to dump full info', action='store',type='str')
 
+    
+    def iterate_memspace(self, task):
+        """ Iterates in the memory space of the given task, computing the valid pages """
+        
+        retdata = []
+        task_space = task.get_process_address_space()
+        for mod in task.get_load_modules():
+            count_valid_pages = 0
+                    
+            # Create dump_file, if needed
+            dump_file = None
+            f = None
+            if self._config.DUMP_DIR:
+                dump_file = os.path.join(self._config.DUMP_DIR,'{0}-{1}-{2}.csv'.format(task.ImageFileName, task.UniqueProcessId, mod.BaseDllName.v()))
+                f = open(dump_file, "w+")
+                f.write("VADDR,PHYADDR\n") # CSV header
+                    
+            # iterate on memory pages and count resident ones
+            for i in range(0, mod.SizeOfImage, PAGE_SIZE):
+                phyaddr = task_space.vtop(mod.DllBase+i)
+                if phyaddr:
+                    count_valid_pages += 1
+                    if self._config.DUMP_DIR: 
+                        f.write("{},{}\n".format(hex(mod.DllBase+i)[:-1],hex(phyaddr)[:-1]))
+                    
+            # compute the total pages and yield the result
+            total_pages = mod.SizeOfImage / PAGE_SIZE
+            retdata.append([task.UniqueProcessId, task.ImageFileName, mod.BaseDllName.v(), mod.DllBase.v(), count_valid_pages, total_pages, mod.FullDllName.v(), dump_file if dump_file else None])
+        return retdata
+
     def calculate(self):
+        """ TODO """
+
         self.addr_space = utils.load_as(self._config)
         if self._config.PID:
             pids = self._config.PID.split(',')
 
+        # iterate on tasks
+        tasks_info = []
         for task in tasks.pslist(self.addr_space):
             if (not self._config.PID) or (str(task.UniqueProcessId) in pids):
-                task_space = task.get_process_address_space()
-                for mod in task.get_load_modules():
-                    count_valid_pages = 0
-                    
-                    # Create dump_file, if needed
-                    dump_file = None
-                    f = None
-                    if self._config.DUMP_DIR:
-                        dump_file = os.path.join(self._config.DUMP_DIR,'{0}-{1}-{2}.csv'.format(task.ImageFileName, task.UniqueProcessId, mod.BaseDllName.v()))
-                        f = open(dump_file, "w+")
-                        f.write("VADDR,PHYADDR\n") # CSV header
-                    
-                    # iterate on memory pages and count resident ones
-                    for i in range(0, mod.SizeOfImage, PAGE_SIZE):
-                        phyaddr = task_space.vtop(mod.DllBase+i)
-                        if phyaddr:
-                            count_valid_pages += 1
-                            if self._config.DUMP_DIR: 
-                                f.write("{},{}\n".format(hex(mod.DllBase+i)[:-1],hex(phyaddr)[:-1]))
+                tasks_info.extend(self.iterate_memspace(task))
 
-                    # compute the total pages and yield the result
-                    total_pages = mod.SizeOfImage / PAGE_SIZE
-                    yield (task.UniqueProcessId, task.ImageFileName, mod.BaseDllName.v(), mod.DllBase.v(), count_valid_pages, total_pages, mod.FullDllName.v(), dump_file if dump_file else None )
-
-    
-
+        return tasks_info
 
     def unified_output(self, data):
         if self._config.DUMP_DIR:
