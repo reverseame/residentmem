@@ -69,19 +69,6 @@ class PagedMem(AbstractWindowsCommand):
 
         return retdata
 
-    def iterate_kmemspace(self, task_space, driver):
-
-        retdata = []
-        _filename = None
-        if self._config.DUMP_DIR:
-            _filename = os.path.join(self._config.DUMP_DIR,'driver-{}.csv'.format(mod.BaseDllName.v()))
-        _moddata = self.process_memspace(task_space, driver, _filename)
-        _auxdata = ['--', '--']
-        _auxdata.extend(_moddata)
-        retdata.append(_auxdata)
-
-        return retdata
-
     def calculate(self):
         """ TODO """
 
@@ -97,7 +84,8 @@ class PagedMem(AbstractWindowsCommand):
 
         # iterate on tasks
         tasks_info = []
-        for task in tasks.pslist(self.addr_space):
+        procs = list(tasks.pslist(self.addr_space))
+        for task in procs:
             if (not self._config.PID) or (str(task.UniqueProcessId) in pids):
                 _task_data = self.iterate_umemspace(task)
                 tasks_info.extend(_task_data) # join to the result data
@@ -106,19 +94,6 @@ class PagedMem(AbstractWindowsCommand):
                         for element in item[:-1]:
                             f.write(str(element) + '\t')
                         f.write(str(item[-1]) + '\n')
-        
-        # TODO Set this by an optional parameter
-        # iterate on drivers
-        mods = dict((mod.DllBase.v(), mod) for mod in modules.lsmod(self.addr_space))
-        for mod in mods.values():
-            _task_data = self.iterate_kmemspace(self.addr_space, mod)
-            tasks_info.extend(_task_data) # join to the result data
-            if f: # output data to logfile, if provided
-                for item in _task_data: # we follow TSV format
-                    for element in item[:-1]:
-                        f.write(str(element) + '\t')
-                    f.write(str(item[-1]) + '\n')
-
         # cleanup
         if self._config.LOGFILE:
             f.close()
