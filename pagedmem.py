@@ -11,7 +11,7 @@ import volatility.commands as commands
 import volatility.registry as registry
 import os
 
-
+# TODO allow to define PAGE_SIZE by parameter
 PAGE_SIZE = 4096
 
 class PagedMem(AbstractWindowsCommand):
@@ -38,13 +38,13 @@ class PagedMem(AbstractWindowsCommand):
                         # Create dump_file
                         dump_file = os.path.join(self._config.DUMP_DIR,'{0}-{1}-{2}.csv'.format(task.ImageFileName, task.UniqueProcessId, mod.BaseDllName.v()))
                         with open(dump_file, "w+") as f:
-                            f.write("VADDR,\t\tPHYADDR\n")
+                            f.write("VADDR,PHYADDR\n")
                             for i in range(0, mod.SizeOfImage, PAGE_SIZE):
                                 phyaddr = task_space.vtop(mod.DllBase+i)
                                 if phyaddr:
                                     count_valid_pages += 1
                                     # Add line to dump_file
-                                    f.write("{}\t{}\n".format(hex(mod.DllBase+i)[:-1],hex(phyaddr)[:-1]))
+                                    f.write("{},{}\n".format(hex(mod.DllBase+i)[:-1],hex(phyaddr)[:-1]))
 
                         
                     else:
