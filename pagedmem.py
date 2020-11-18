@@ -91,33 +91,33 @@ class PagedMem(AbstractWindowsCommand):
         if self._config.DUMP_DIR:
             return renderers.TreeGrid([
                         ('Pid', '4'),
-                        ('Process', '25'),
-                        ('Module Name', '33'),
+                        ('Process', '12'),
+                        ('Module Name', '20'),
                         ('Module Base', '[addr]'),
-                        ('Num paged', '12'),
-                        ('Num resident', '12'),
+                        ('Resident', '8'),
+                        ('Total', '8'),
                         ('Path', '46'),
                         ('Dump file', '46'),
                     ])
         else:
             return renderers.TreeGrid([
                         ('Pid', '4'),
-                        ('Process', '25'),
-                        ('Module Name', '33'),
+                        ('Process', '12'),
+                        ('Module Name', '20'),
                         ('Module Base', '[addr]'),
-                        ('Num paged', '12'),
-                        ('Num resident', '12'),
+                        ('Resident', '8'),
+                        ('Total', '8'),
                         ('Path', '46'),
                     ])
 
     def render_text(self, outfd, data):
 
         table_header = [('Pid', '4'),
-                        ('Process', '8'),
-                        ('Module Name', '8'),
+                        ('Process', '12'),
+                        ('Module Name', '20'),
                         ('Module Base', '[addr]'),
-                        ('Paged', '5'),
-                        ('Total', '5'),
+                        ('Resident', '8'),
+                        ('Total', '8'),
                         ('Path', '46')]
         if self._config.DUMP_DIR:
             table_header = table_header + [('Dump file', '46')]
@@ -135,36 +135,4 @@ class PagedMem(AbstractWindowsCommand):
 
 
 
-    '''class PagedMemPrint(object):
-    def __init__(self, pid, process, module, address, valid_pages, total_pages, path, dump_file=None):
-        self.pid = pid
-        self.process = process
-        self.module = module
-        self.address = address
-        self.valid_pages = valid_pages
-        self.total_pages = total_pages
-        self.path = path
-        self.dump_file = dump_file
 
-    def get_generator(self):
-        if self._config.DUMP_DIR:
-            return [
-                int(self.pid),
-                str(self.process),
-                str(self.mod_name),
-                Address(self.mod_base),
-                int(self.count_valid_pages),
-                int(self.total_pages),
-                str(self.path),
-                str(self.dump_file)
-            ]
-        else:
-            return [
-                int(self.pid),
-                str(self.process),
-                str(self.mod_name),
-                Address(self.mod_base),
-                int(self.count_valid_pages),
-                int(self.total_pages),
-                str(self.path)
-            ]'''
