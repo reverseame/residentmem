@@ -24,36 +24,61 @@ class PagedMem(AbstractWindowsCommand):
         self._config.add_option('LOGFILE', help='Logfile to dump full info', action='store',type='str')
 
     
-    def iterate_memspace(self, task):
+    def process_memspace(self, task_space, mod, dump_filename):
+        
+        count_valid_pages = 0
+        
+        # Create dump_file, if needed
+        dump_file = None
+        f = None
+        if self._config.DUMP_DIR:
+            dump_file = dump_filename
+            os.path.join(self._config.DUMP_DIR,'{0}-{1}-{2}.csv'.format(task.ImageFileName, task.UniqueProcessId, mod.BaseDllName.v()))
+            f = open(dump_file, "w+")
+            f.write("VADDR,PHYADDR\n") # CSV header
+                    
+        # iterate on memory pages and count resident ones
+        for i in range(0, mod.SizeOfImage, PAGE_SIZE):
+            phyaddr = task_space.vtop(mod.DllBase+i)
+            if phyaddr:
+                count_valid_pages += 1
+                if self._config.DUMP_DIR: 
+                    f.write("{},{}\n".format(hex(mod.DllBase+i)[:-1],hex(phyaddr)[:-1]))
+                    
+        # compute the total pages and yield the result
+        total_pages = mod.SizeOfImage / PAGE_SIZE
+        return [mod.BaseDllName.v(), mod.DllBase.v(), total_pages - count_valid_pages, total_pages, mod.FullDllName.v(), dump_file if dump_file else None]
+
+    def iterate_umemspace(self, task):
         """ Iterates in the memory space of the given task, computing the valid pages """
         
         retdata = []
         task_space = task.get_process_address_space()
         for mod in task.get_load_modules():
-            count_valid_pages = 0
-                    
-            # Create dump_file, if needed
-            dump_file = None
-            f = None
+            _filename = None
             if self._config.DUMP_DIR:
-                dump_file = os.path.join(self._config.DUMP_DIR,'{0}-{1}-{2}.csv'.format(task.ImageFileName, task.UniqueProcessId, mod.BaseDllName.v()))
-                f = open(dump_file, "w+")
-                f.write("VADDR,PHYADDR\n") # CSV header
-                    
-            # iterate on memory pages and count resident ones
-            for i in range(0, mod.SizeOfImage, PAGE_SIZE):
-                phyaddr = task_space.vtop(mod.DllBase+i)
-                if phyaddr:
-                    count_valid_pages += 1
-                    if self._config.DUMP_DIR: 
-                        f.write("{},{}\n".format(hex(mod.DllBase+i)[:-1],hex(phyaddr)[:-1]))
-                    
-            # compute the total pages and yield the result
-            total_pages = mod.SizeOfImage / PAGE_SIZE
-            retdata.append([task.UniqueProcessId, task.ImageFileName, mod.BaseDllName.v(), mod.DllBase.v(), total_pages - count_valid_pages, total_pages, mod.FullDllName.v(), dump_file if dump_file else None])
+                _filename = os.path.join(self._config.DUMP_DIR,'{0}-{1}-{2}.csv'.format(task.ImageFileName, task.UniqueProcessId, mod.BaseDllName.v()))
+            _moddata = self.process_memspace(task_space, mod, _filename)
+            
+            _auxdata = [task.UniqueProcessId, task.ImageFileName]
+            _auxdata.extend(_moddata)
+            retdata.append(_auxdata)
 
             if self._config.DUMP_DIR: 
                 f.close()
+
+        return retdata
+
+    def iterate_kmemspace(self, task_space, driver):
+
+        retdata = []
+        _filename = None
+        if self._config.DUMP_DIR:
+            _filename = os.path.join(self._config.DUMP_DIR,'driver-{}.csv'.format(mod.BaseDllName.v()))
+        _moddata = self.process_memspace(task_space, driver, _filename)
+        _auxdata = ['--', '--']
+        _auxdata.extend(_moddata)
+        retdata.append(_auxdata)
 
         return retdata
 
@@ -74,13 +99,26 @@ class PagedMem(AbstractWindowsCommand):
         tasks_info = []
         for task in tasks.pslist(self.addr_space):
             if (not self._config.PID) or (str(task.UniqueProcessId) in pids):
-                _task_data = self.iterate_memspace(task)
+                _task_data = self.iterate_umemspace(task)
                 tasks_info.extend(_task_data) # join to the result data
                 if f: # output data to logfile, if provided
                     for item in _task_data: # we follow TSV format
                         for element in item[:-1]:
                             f.write(str(element) + '\t')
                         f.write(str(item[-1]) + '\n')
+        
+        # TODO Set this by an optional parameter
+        # iterate on drivers
+        mods = dict((mod.DllBase.v(), mod) for mod in modules.lsmod(self.addr_space))
+        for mod in mods.values():
+            _task_data = self.iterate_kmemspace(self.addr_space, mod)
+            tasks_info.extend(_task_data) # join to the result data
+            if f: # output data to logfile, if provided
+                for item in _task_data: # we follow TSV format
+                    for element in item[:-1]:
+                        f.write(str(element) + '\t')
+                    f.write(str(item[-1]) + '\n')
+
         # cleanup
         if self._config.LOGFILE:
             f.close()
