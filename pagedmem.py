@@ -51,6 +51,10 @@ class PagedMem(AbstractWindowsCommand):
             # compute the total pages and yield the result
             total_pages = mod.SizeOfImage / PAGE_SIZE
             retdata.append([task.UniqueProcessId, task.ImageFileName, mod.BaseDllName.v(), mod.DllBase.v(), count_valid_pages, total_pages, mod.FullDllName.v(), dump_file if dump_file else None])
+
+            if self._config.DUMP_DIR: 
+                f.close()
+
         return retdata
 
     def calculate(self):
@@ -60,11 +64,26 @@ class PagedMem(AbstractWindowsCommand):
         if self._config.PID:
             pids = self._config.PID.split(',')
 
+        # check logfile output
+        f = None
+        if self._config.LOGFILE:
+            log_file = os.path.join(self._config.LOGFILE)
+            f = open(log_file, "w+")
+
         # iterate on tasks
         tasks_info = []
         for task in tasks.pslist(self.addr_space):
             if (not self._config.PID) or (str(task.UniqueProcessId) in pids):
-                tasks_info.extend(self.iterate_memspace(task))
+                _task_data = self.iterate_memspace(task)
+                tasks_info.extend(_task_data) # join to the result data
+                if f: # output data to logfile, if provided
+                    for item in _task_data: # we follow TSV format
+                        for element in item[:-1]:
+                            f.write(str(element) + '\t')
+                        f.write(str(item[-1]) + '\n')
+        # cleanup
+        if self._config.LOGFILE:
+            f.close()
 
         return tasks_info
 
