@@ -35,6 +35,8 @@ class PagedMem(AbstractWindowsCommand):
                     count_valid_pages = 0
                     dump_file = None
                     if self._config.DUMP_DIR:
+                        if not os.path.exists(self._config.DUMP_DIR):
+                            os.makedirs(self._config.DUMP_DIR)
                         # Create dump_file
                         dump_file = os.path.join(self._config.DUMP_DIR,'{0}-{1}-{2}.csv'.format(task.ImageFileName, task.UniqueProcessId, mod.BaseDllName.v()))
                         with open(dump_file, "w+") as f:
@@ -53,89 +55,47 @@ class PagedMem(AbstractWindowsCommand):
                                 count_valid_pages += 1
 
                     total_pages = mod.SizeOfImage / PAGE_SIZE
-                    yield (task.UniqueProcessId, task.ImageFileName, mod.BaseDllName.v(), mod.DllBase.v(), count_valid_pages, total_pages, mod.FullDllName.v(), dump_file if dump_file else None )
-
-    
-
+                    yield (task.UniqueProcessId, task.ImageFileName, mod.BaseDllName.v(), mod.DllBase.v(), total_pages - count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
 
     def unified_output(self, data):
         if self._config.DUMP_DIR:
             return renderers.TreeGrid([
                         ('Pid', '4'),
-                        ('Process', '25'),
-                        ('Module Name', '33'),
+                        ('Process', '12'),
+                        ('Module Name', '20'),
                         ('Module Base', '[addr]'),
-                        ('Num paged', '12'),
-                        ('Num resident', '12'),
+                        ('Paged', '8'),
+                        ('Total', '8'),
                         ('Path', '46'),
                         ('Dump file', '46'),
                     ])
         else:
             return renderers.TreeGrid([
                         ('Pid', '4'),
-                        ('Process', '25'),
-                        ('Module Name', '33'),
+                        ('Process', '12'),
+                        ('Module Name', '20'),
                         ('Module Base', '[addr]'),
-                        ('Num paged', '12'),
-                        ('Num resident', '12'),
+                        ('Paged', '8'),
+                        ('Total', '8'),
                         ('Path', '46'),
                     ])
 
     def render_text(self, outfd, data):
 
         table_header = [('Pid', '4'),
-                        ('Process', '8'),
-                        ('Module Name', '8'),
+                        ('Process', '12'),
+                        ('Module Name', '20'),
                         ('Module Base', '[addr]'),
-                        ('Paged', '5'),
-                        ('Total', '5'),
+                        ('Paged', '8'),
+                        ('Total', '8'),
                         ('Path', '46')]
         if self._config.DUMP_DIR:
             table_header = table_header + [('Dump file', '46')]
         self.table_header(outfd, table_header)
           
         if self._config.DUMP_DIR:
-            for pid, process, module, address, valid_pages, total_pages, path, dump in data:
-                self.table_row(outfd, pid, process, module, address, valid_pages, total_pages, path, dump)
+            for pid, process, module, address, paged_pages, total_pages, path, dump in data:
+                self.table_row(outfd, pid, process, module, address, paged_pages, total_pages, path, dump)
         else: 
-            for pid, process, module, address, valid_pages, total_pages, path, dump in data:
-                self.table_row(outfd, pid, process, module, address, valid_pages, total_pages, path)
-
-        
-
-
-
-
-    '''class PagedMemPrint(object):
-    def __init__(self, pid, process, module, address, valid_pages, total_pages, path, dump_file=None):
-        self.pid = pid
-        self.process = process
-        self.module = module
-        self.address = address
-        self.valid_pages = valid_pages
-        self.total_pages = total_pages
-        self.path = path
-        self.dump_file = dump_file
-
-    def get_generator(self):
-        if self._config.DUMP_DIR:
-            return [
-                int(self.pid),
-                str(self.process),
-                str(self.mod_name),
-                Address(self.mod_base),
-                int(self.count_valid_pages),
-                int(self.total_pages),
-                str(self.path),
-                str(self.dump_file)
-            ]
-        else:
-            return [
-                int(self.pid),
-                str(self.process),
-                str(self.mod_name),
-                Address(self.mod_base),
-                int(self.count_valid_pages),
-                int(self.total_pages),
-                str(self.path)
-            ]'''
+            for pid, process, module, address, paged_pages, total_pages, path, dump in data:
+                self.table_row(outfd, pid, process, module, address, paged_pages, total_pages, path)
