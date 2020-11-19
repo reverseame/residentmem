@@ -48,9 +48,9 @@ class PagedMem(AbstractWindowsCommand):
                     count_valid_pages = 0
                     _list = []
                     for i in range(0, mod.SizeOfImage, PAGE_SIZE):
-                        if task_space.vtop(mod.DllBase+i):
+                        if task_space.is_valid_address(mod.DllBase + i):
                             count_valid_pages += 1
-                            _list.append([mod.DllBase+i, task_space.vtop(mod.DllBase+i)])
+                            _list.append([mod.DllBase + i, task_space.vtop(mod.DllBase + i)])
 
                     dump_file = None
                     if self._config.DUMP_DIR:
@@ -71,39 +71,34 @@ class PagedMem(AbstractWindowsCommand):
                         log_file.write('\t'.join((str(task.UniqueProcessId), str(task.ImageFileName), baseDllName, str(mod.DllBase.v()), str(total_pages - count_valid_pages), str(total_pages), fullDllName)) + '\n')
                     yield (task.UniqueProcessId, task.ImageFileName, mod.BaseDllName.v(), mod.DllBase.v(), total_pages - count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
 
-        # Modules on kernel
-        mods = dict((mod.DllBase.v(), mod) for mod in modules.lsmod(addr_space))
-        procs = list(tasks.pslist(addr_space))
+        # Drivers -- part of this code is inspired in moddump plugin 
+        mods = dict((mod.DllBase.v(), mod) for mod in modules.lsmod(self.addr_space))
+        procs = list(tasks.pslist(self.addr_space))
 
         for mod in mods.values():
+            mod_base = mod.DllBase.v()
+            space = tasks.find_space(self.addr_space, procs, mod_base)
             count_valid_pages = 0
+            _list = []
+            if space != None: # check if we have retrieved the correct AS
+            # when no retrieved, paged memory pages will be equal to the total pages
+                for i in range(0, mod.SizeOfImage, PAGE_SIZE):
+                    if space.is_valid_address(mod.DllBase + i):
+                        count_valid_pages += 1
+                    _list.append([mod.DllBase+i, space.vtop(mod.DllBase + i)])
+
             dump_file = None
             if self._config.DUMP_DIR:
                 if not os.path.exists(self._config.DUMP_DIR):
                     os.makedirs(self._config.DUMP_DIR)
                 # Create dump_file
                 dump_file = os.path.join(self._config.DUMP_DIR,'drv_{}.csv'.format(mod.BaseDllName.v()))
-                with open(dump_file, "w+") as f:
-                    f.write("VADDR,PHYADDR\n")
-                    for i in range(0, mod.SizeOfImage, PAGE_SIZE):
-                        phyaddr = self.addr_space.vtop(mod.DllBase+i)
-                        if phyaddr:
-                            count_valid_pages += 1
-                            # Add line to dump_file
-                            f.write("{},{}\n".format(hex(mod.DllBase+i)[:-1],hex(phyaddr)[:-1]))
-
-                
-            else:
-                print(mod.BaseDllName.v(), self.addr_space)
-                import pdb; pdb.set_trace()
-                for i in range(0, mod.SizeOfImage, PAGE_SIZE):
-                    if task_space.vtop(mod.DllBase+i):
-                        count_valid_pages += 1
+                self.write_to_file(dump_file, _list)
 
             total_pages = mod.SizeOfImage / PAGE_SIZE
             if log_file:
                 log_file.write('\t'.join((str(0), str(0), str(mod.BaseDllName.v()), str(mod.DllBase.v()), str(total_pages - count_valid_pages), str(total_pages), str(mod.FullDllName.v()))) + '\n')
-            yield (0, 0, mod.BaseDllName.v(), mod.DllBase.v(), total_pages - count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
+            yield ('--', '--', mod.BaseDllName.v(), mod.DllBase.v(), total_pages - count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
 
     def unified_output(self, data):
         if self._config.DUMP_DIR:
