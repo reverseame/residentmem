@@ -29,7 +29,7 @@ class PagedMem(AbstractWindowsCommand):
             pids = self._config.PID.split(',')
 
         # check logfile output
-        f = None
+        log_file = None
         if self._config.LOGFILE:
             log_file = open(self._config.LOGFILE, "w+")
 
@@ -60,7 +60,7 @@ class PagedMem(AbstractWindowsCommand):
 
                     total_pages = mod.SizeOfImage / PAGE_SIZE
                     if log_file:
-                         log_file.write('\t'.join((str(task.UniqueProcessId), str(task.ImageFileName), str(mod.BaseDllName.v()), str(mod.DllBase.v()), str(total_pages - count_valid_pages), str(total_pages), mod.FullDllName.v())) + '\n')
+                        log_file.write('\t'.join((str(task.UniqueProcessId), str(task.ImageFileName), str(mod.BaseDllName.v()), str(mod.DllBase.v()), str(total_pages - count_valid_pages), str(total_pages), str(mod.FullDllName.v()))) + '\n')
                     yield (task.UniqueProcessId, task.ImageFileName, mod.BaseDllName.v(), mod.DllBase.v(), total_pages - count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
 
         # Modules on kernel
@@ -71,7 +71,7 @@ class PagedMem(AbstractWindowsCommand):
                 if not os.path.exists(self._config.DUMP_DIR):
                     os.makedirs(self._config.DUMP_DIR)
                 # Create dump_file
-                dump_file = os.path.join(self._config.DUMP_DIR,'{}.csv'.format(mod.BaseDllName.v()))
+                dump_file = os.path.join(self._config.DUMP_DIR,'drv_{}.csv'.format(mod.BaseDllName.v()))
                 with open(dump_file, "w+") as f:
                     f.write("VADDR,PHYADDR\n")
                     for i in range(0, mod.SizeOfImage, PAGE_SIZE):
@@ -83,13 +83,15 @@ class PagedMem(AbstractWindowsCommand):
 
                 
             else:
+                print(mod.BaseDllName.v(), self.addr_space)
+                import pdb; pdb.set_trace()
                 for i in range(0, mod.SizeOfImage, PAGE_SIZE):
                     if task_space.vtop(mod.DllBase+i):
                         count_valid_pages += 1
 
             total_pages = mod.SizeOfImage / PAGE_SIZE
             if log_file:
-                log_file.write('\t'.join((str(0), str(0), str(mod.BaseDllName.v()), str(mod.DllBase.v()), str(total_pages - count_valid_pages), str(total_pages), mod.FullDllName.v())) + '\n')
+                log_file.write('\t'.join((str(0), str(0), str(mod.BaseDllName.v()), str(mod.DllBase.v()), str(total_pages - count_valid_pages), str(total_pages), str(mod.FullDllName.v()))) + '\n')
             yield (0, 0, mod.BaseDllName.v(), mod.DllBase.v(), total_pages - count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
 
     def unified_output(self, data):
