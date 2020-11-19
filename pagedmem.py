@@ -98,7 +98,7 @@ class PagedMem(AbstractWindowsCommand):
 
             total_pages = mod.SizeOfImage / PAGE_SIZE
             if log_file:
-                log_file.write('\t'.join((str(0), str(0), str(mod.BaseDllName.v()), str(mod.DllBase.v()), str(total_pages - count_valid_pages), str(total_pages), str(mod.FullDllName.v()))) + '\n')
+                log_file.write('\t'.join(('--', '--', str(mod.BaseDllName.v()), str(mod.DllBase.v()), str(total_pages - count_valid_pages), str(total_pages), str(mod.FullDllName.v()))) + '\n')
             yield ('--', '--', mod.BaseDllName.v(), mod.DllBase.v(), total_pages - count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
 
     def unified_output(self, data):
