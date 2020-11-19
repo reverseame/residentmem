@@ -28,7 +28,7 @@ class PagedMem(AbstractWindowsCommand):
         with open(filename, "w+") as f:
             f.write("VADDR,PHYADDR\n")
             for vaddr, phyaddr in _list:
-                f.write("{},{}\n".format(hex(vaddr), hex(pyhaddr)))   
+                f.write("{},{}\n".format(hex(vaddr), hex(phyaddr)))   
 
     def calculate(self):
         """ TODO """
@@ -86,7 +86,7 @@ class PagedMem(AbstractWindowsCommand):
                 for i in range(0, mod.SizeOfImage, PAGE_SIZE):
                     if space.is_valid_address(mod.DllBase + i):
                         count_valid_pages += 1
-                    _list.append([mod.DllBase+i, space.vtop(mod.DllBase + i)])
+                        _list.append([mod.DllBase+i, space.vtop(mod.DllBase + i)])
 
             dump_file = None
             if self._config.DUMP_DIR:
@@ -100,6 +100,9 @@ class PagedMem(AbstractWindowsCommand):
             if log_file:
                 log_file.write('\t'.join(('--', '--', str(mod.BaseDllName.v()), str(mod.DllBase.v()), str(total_pages - count_valid_pages), str(total_pages), str(mod.FullDllName.v()))) + '\n')
             yield ('--', '--', mod.BaseDllName.v(), mod.DllBase.v(), total_pages - count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
+        
+        if self._config.LOGFILE:
+            log_file.close()
 
     def unified_output(self, data):
         if self._config.DUMP_DIR:
