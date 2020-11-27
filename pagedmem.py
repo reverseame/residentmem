@@ -15,7 +15,16 @@ import os
 PAGE_SIZE = 4096
 
 class PagedMem(AbstractWindowsCommand):
-    """ XXX: List of valid pages """
+    """ pagedmem: counts how many memory pages are outswapped of a Windows memory dump per module (exe or dll) and system driver.
+    
+        Options:
+            -p: Process PID(s). Will hash given processes PIDs.
+                (-p 252 | -p 252,452,2852)
+
+            -D DIR, --dump-dir=DIR: Temp folder to dump output files
+            
+            --logfile LOGNAME: Logfile to dump full info
+     """
 
     def __init__(self, config, *args, **kwargs):
         AbstractWindowsCommand.__init__(self, config, *args, **kwargs)
