@@ -19,7 +19,8 @@ pagedmem: counts how many memory pages are outswapped of a Windows memory dump p
             Creates a logfile containing the full output of the tool (for instance, it allows you to obtain the full module names, not truncated as in the Volatility's output
 ```
 
-An example of the execution of plugin:
+## Usage example
+
 ```
 $ python2 vol.py --plugins /path/to/sum -f /path/to/memory.dump pagedmem -D dump-dir
 Volatility Foundation Volatility Framework 2.6.1
