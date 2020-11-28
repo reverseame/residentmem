@@ -10,17 +10,18 @@
 pagedmem: counts how many memory pages are outswapped of a Windows memory dump per module (exe or dll) and system driver.
 
     Options:
-        -p: Process PID(s). Will hash given processes PIDs.
+        -p: Process PID(s)
             (-p 252 | -p 252,452,2852)
 
         -D DIR, --dump-dir=DIR: Temporary folder to dump output files
         
         --logfile LOGNAME: Logfile to dump full info
+            Creates a logfile containing the full output of the tool (for instance, it allows you to obtain the full module names, not truncated as in the Volatility's output
 ```
 
-A real example of the output provided:
+An example of the execution of plugin:
 ```
-python2 vol.py --plugins /path/to/sum -f /path/to/memory.dump pagedmem -D dump-dir
+$ python2 vol.py --plugins /path/to/sum -f /path/to/memory.dump pagedmem -D dump-dir
 Volatility Foundation Volatility Framework 2.6.1
 Pid  Process      Module Name                 Module Base Paged    Total    Path                                           Dump file                                     
 ---- ------------ -------------------- ------------------ -------- -------- ---------------------------------------------- ----------------------------------------------

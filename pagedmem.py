@@ -18,12 +18,13 @@ class PagedMem(AbstractWindowsCommand):
     """ pagedmem: counts how many memory pages are outswapped of a Windows memory dump per module (exe or dll) and system driver.
     
         Options:
-            -p: Process PID(s). Will hash given processes PIDs.
+            -p: Process PID(s)
                 (-p 252 | -p 252,452,2852)
 
-            -D DIR, --dump-dir=DIR: Temp folder to dump output files
+            -D DIR, --dump-dir=DIR: Temporary folder to dump output files
             
             --logfile LOGNAME: Logfile to dump full info
+                    Creates a logfile containing the full output of the tool (for instance, it allows you to obtain the full module names, not truncated as in the Volatility's output
      """
 
     def __init__(self, config, *args, **kwargs):
