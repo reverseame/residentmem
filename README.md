@@ -1,7 +1,8 @@
 # Pagedmem - Volatility Plugin
 
-`pagedmem` for Volatility 2.6 obtains the number of the memory pages which are paged per module (exe or dll) and driver from Windows memory dump.
+`pagedmem` for Volatility 2.6 obtains the number of the memory pages paged per module (exe or dll) and per driver from a Windows memory dump.
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 ## Usage
 
@@ -12,14 +13,14 @@ pagedmem: counts how many memory pages are outswapped of a Windows memory dump p
         -p: Process PID(s). Will hash given processes PIDs.
             (-p 252 | -p 252,452,2852)
 
-        -D DIR, --dump-dir=DIR: Temp folder to dump output files
+        -D DIR, --dump-dir=DIR: Temporary folder to dump output files
         
         --logfile LOGNAME: Logfile to dump full info
 ```
 
-
+A real example of the output provided:
 ```
-vol.py --plugins /path/to/sum -f /path/to/memory.dump pagedmem -D dump-dir
+python2 vol.py --plugins /path/to/sum -f /path/to/memory.dump pagedmem -D dump-dir
 Volatility Foundation Volatility Framework 2.6.1
 Pid  Process      Module Name                 Module Base Paged    Total    Path                                           Dump file                                     
 ---- ------------ -------------------- ------------------ -------- -------- ---------------------------------------------- ----------------------------------------------
