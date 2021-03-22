@@ -14,8 +14,8 @@ import os
 # TODO allow to define PAGE_SIZE by parameter
 PAGE_SIZE = 4096
 
-class PagedMem(AbstractWindowsCommand):
-    """ pagedmem: counts how many memory pages are outswapped of a Windows memory dump per module (exe or dll) and system driver.
+class ResidentMem(AbstractWindowsCommand):
+    """ residentmem: counts how many memory pages resident in a Windows memory dump per module (exe or dll) and system driver.
     
         Options:
             -p: Process PID(s)
@@ -79,8 +79,8 @@ class PagedMem(AbstractWindowsCommand):
                         fullDllName = mod.FullDllName.v()
                         if type(fullDllName) == obj.NoneObject:
                             fullDllName = '-----'
-                        log_file.write('\t'.join((str(task.UniqueProcessId), str(task.ImageFileName), baseDllName, str(mod.DllBase.v()), str(total_pages - count_valid_pages), str(total_pages), fullDllName)) + '\n')
-                    yield (task.UniqueProcessId, task.ImageFileName, mod.BaseDllName.v(), mod.DllBase.v(), total_pages - count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
+                        log_file.write('\t'.join((str(task.UniqueProcessId), str(task.ImageFileName), baseDllName, str(mod.DllBase.v()), str(count_valid_pages), str(total_pages), fullDllName)) + '\n')
+                    yield (task.UniqueProcessId, task.ImageFileName, mod.BaseDllName.v(), mod.DllBase.v(), count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
 
         # Drivers -- part of this code is inspired in moddump plugin 
         mods = dict((mod.DllBase.v(), mod) for mod in modules.lsmod(self.addr_space))
@@ -108,8 +108,8 @@ class PagedMem(AbstractWindowsCommand):
 
             total_pages = mod.SizeOfImage / PAGE_SIZE
             if log_file:
-                log_file.write('\t'.join(('--', '--', str(mod.BaseDllName.v()), str(mod.DllBase.v()), str(total_pages - count_valid_pages), str(total_pages), str(mod.FullDllName.v()))) + '\n')
-            yield ('--', '--', mod.BaseDllName.v(), mod.DllBase.v(), total_pages - count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
+                log_file.write('\t'.join(('--', '--', str(mod.BaseDllName.v()), str(mod.DllBase.v()), str(count_valid_pages), str(total_pages), str(mod.FullDllName.v()))) + '\n')
+            yield ('--', '--', mod.BaseDllName.v(), mod.DllBase.v(), count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
         
         if self._config.LOGFILE:
             log_file.close()
@@ -121,7 +121,7 @@ class PagedMem(AbstractWindowsCommand):
                         ('Process', '12'),
                         ('Module Name', '20'),
                         ('Module Base', '[addr]'),
-                        ('Paged', '8'),
+                        ('Resident', '8'),
                         ('Total', '8'),
                         ('Path', '46'),
                         ('Dump file', '46'),
@@ -132,7 +132,7 @@ class PagedMem(AbstractWindowsCommand):
                         ('Process', '12'),
                         ('Module Name', '20'),
                         ('Module Base', '[addr]'),
-                        ('Paged', '8'),
+                        ('Resident', '8'),
                         ('Total', '8'),
                         ('Path', '46'),
                     ])
@@ -143,7 +143,7 @@ class PagedMem(AbstractWindowsCommand):
                         ('Process', '12'),
                         ('Module Name', '20'),
                         ('Module Base', '[addr]'),
-                        ('Paged', '8'),
+                        ('Resident', '8'),
                         ('Total', '8'),
                         ('Path', '46')]
         if self._config.DUMP_DIR:
@@ -151,8 +151,8 @@ class PagedMem(AbstractWindowsCommand):
         self.table_header(outfd, table_header)
           
         if self._config.DUMP_DIR:
-            for pid, process, module, address, paged_pages, total_pages, path, dump in data:
-                self.table_row(outfd, pid, process, module, address, paged_pages, total_pages, path, dump)
+            for pid, process, module, address, resident_pages, total_pages, path, dump in data:
+                self.table_row(outfd, pid, process, module, address, resident_pages, total_pages, path, dump)
         else: 
-            for pid, process, module, address, paged_pages, total_pages, path, dump in data:
-                self.table_row(outfd, pid, process, module, address, paged_pages, total_pages, path)
+            for pid, process, module, address, resident_pages, total_pages, path, dump in data:
+                self.table_row(outfd, pid, process, module, address, resident_pages, total_pages, path)
