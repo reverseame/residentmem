@@ -1,13 +1,13 @@
 # Residentmem - Volatility Plugin
 
-`residentmeme` for Volatility 2.6 obtains the number of the memory pages resident in memory per module (exe or dll) and per driver from a Windows memory dump.
+`residentmem` for Volatility 2.6 obtains the number of the memory pages resident in memory per module (exe or dll) and per driver from a Windows memory dump.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 ## Usage
 
 ```
-residentmeme: counts how many memory pages resident in a Windows memory dump per module (exe or dll) and system driver.
+residentmem: counts how many memory pages resident in a Windows memory dump per module (exe or dll) and system driver.
 
     Options:
         -p: Process PID(s)
@@ -22,7 +22,7 @@ residentmeme: counts how many memory pages resident in a Windows memory dump per
 ## Usage example
 
 ```
-$ python2 vol.py --plugins /path/to/sum -f /path/to/memory.dump residentmeme -D dump-dir
+$ python2 vol.py --plugins /path/to/sum -f /path/to/memory.dump residentmem -D dump-dir
 Volatility Foundation Volatility Framework 2.6.1
 Pid  Process      Module Name                 Module Base Resident    Total    Path                                           Dump file                                     
 ---- ------------ -------------------- ------------------ -------- -------- ---------------------------------------------- ----------------------------------------------
