@@ -24,21 +24,21 @@ residentmem: counts how many memory pages resident in a Windows memory dump per 
 ```
 $ python2 vol.py --plugins /path/to/sum -f /path/to/memory.dump residentmem -D dump-dir
 Volatility Foundation Volatility Framework 2.6.1
-Pid  Process      Module Name                 Module Base Resident    Total    Path                                           Dump file                                     
----- ------------ -------------------- ------------------ -------- -------- ---------------------------------------------- ----------------------------------------------
- 232 smss.exe     smss.exe                     0x47740000       32       32 \SystemRoot\System32\smss.exe                  dump-dir/smss.exe-232-smss.exe.csv         
- 232 smss.exe     ntdll.dll                    0x778c0000      287      425 C:\Windows\SYSTEM32\ntdll.dll                  dump-dir/smss.exe-232-ntdll.dll.csv        
- 304 csrss.exe    csrss.exe                    0x496a0000        5        6 C:\Windows\system32\csrss.exe                  dump-dir/csrss.exe-304-csrss.exe.csv       
- 304 csrss.exe    ntdll.dll                    0x778c0000      273      425 C:\Windows\SYSTEM32\ntdll.dll                  dump-dir/csrss.exe-304-ntdll.dll.csv       
- 304 csrss.exe    CSRSRV.dll                0x7fefd890000       15       19 C:\Windows\system32\CSRSRV.dll                 dump-dir/csrss.exe-304-CSRSRV.dll.csv      
- 304 csrss.exe    basesrv.DLL               0x7fefd870000       11       17 C:\Windows\system32\basesrv.DLL                dump-dir/csrss.exe-304-basesrv.DLL.csv     
-[... redacted ...]    
---   --           ntoskrnl.exe         0xfffff8000265e000     1514     1514 \SystemRoot\system32\ntoskrnl.exe              dump-dir/drv_ntoskrnl.exe.csv              
---   --           hal.dll              0xfffff80002615000       73       73 \SystemRoot\system32\hal.dll                   dump-dir/drv_hal.dll.csv                   
---   --           rdprefmp.sys         0xfffff880015d9000        7        9 \SystemRoot\system32\drivers\rdprefmp.sys      dump-dir/drv_rdprefmp.sys.csv              
---   --           rdpencdd.sys         0xfffff880015d0000        7        9 \SystemRoot\system32\drivers\rdpencdd.sys      dump-dir/drv_rdpencdd.sys.csv              
---   --           kbdclass.sys         0xfffff88002cba000       11       15 \SystemRoot\system32\DRIVERS\kbdclass.sys      dump-dir/drv_kbdclass.sys.csv              
---   --           raspptp.sys          0xfffff8800341b000       30       33 \SystemRoot\system32\DRIVERS\raspptp.sys       dump-dir/drv_raspptp.sys.csv                          
+Pid  Process      Module Name          File Version   Module Base Resident Total    Path                                           Dump file                                     
+---- ------------ -------------------- -------------- ----------- -------- -------- ---------------------------------------------- --------------------------------------
+ 216 smss.exe     smss.exe                             0x476e0000       17       19 \SystemRoot\System32\smss.exe                  dump-dir/smss.exe-216-smss.exe.csv     
+ 216 smss.exe     ntdll.dll                            0x76da0000      112      316 C:\Windows\SYSTEM32\ntdll.dll                  dump-dir/smss.exe-216-ntdll.dll.csv    
+ 288 csrss.exe    csrss.exe            6.1.7600.16385  0x4a510000        4        5 C:\Windows\system32\csrss.exe                  dump-dir/csrss.exe-288-csrss.exe.csv    
+ 288 csrss.exe    basesrv.DLL                          0x74f40000       10       14 C:\Windows\system32\basesrv.DLL                dump-dir/csrss.exe-288-basesrv.DLL.csv  
+ 288 csrss.exe    winsrv.DLL           6.1.7601.17514  0x74f10000       11       44 C:\Windows\system32\winsrv.DLL                 dump-dir/csrss.exe-288-winsrv.DLL.csv   
+ 288 csrss.exe    USER32.dll           6.1.7601.17514  0x758d0000       66      201 C:\Windows\system32\USER32.dll                 dump-dir/csrss.exe-288-USER32.dll.csv   
+[... redacted ...] 
+--   --           USBD.SYS             6.1.7600.16385  0x9279b000        2        2 \SystemRoot\system32\DRIVERS\USBD.SYS          dump-dir/drv_USBD.SYS.csv
+--   --           termdd.sys                           0x8cb7c000       14       17 \SystemRoot\system32\DRIVERS\termdd.sys        dump-dir/drv_termdd.sys.csv
+--   --           pacer.sys                            0x8cc00000       19       31 \SystemRoot\system32\DRIVERS\pacer.sys         dump-dir/drv_pacer.sys.csv
+--   --           HIDCLASS.SYS         6.1.7601.17514  0x92781000       19       19 \SystemRoot\system32\DRIVERS\HIDCLASS.SYS      dump-dir/drv_HIDCLASS.SYS.csv
+--   --           dump_pciidex.sys     6.1.7600.16385  0x92750000       11       11 \SystemRoot\System32\Drivers\dump_dumpata.sys  dump-dir/drv_dump_dumpata.sys.csv
+--   --           VIDEOPRT.SYS         6.1.7600.16385  0x8cf14000       33       33 \SystemRoot\System32\drivers\VIDEOPRT.SYS      dump-dir/drv_VIDEOPRT.SYS.csv
 [... redacted ...]
 ```
 

@@ -21,7 +21,8 @@ class ResidentMem(AbstractWindowsCommand):
             -p: Process PID(s)
                 (-p 252 | -p 252,452,2852)
 
-            -D DIR, --dump-dir=DIR: Temporary folder to dump output files
+            -D DIR, --dump-dir=DIR: Temporary folder to dump output files.
+                    Create a CSV file containing the relation of virtual address and physical address, one file per module or driver.
             
             --logfile LOGNAME: Logfile to dump full info
                     Creates a logfile containing the full output of the tool (for instance, it allows you to obtain the full module names, not truncated as in the Volatility's output
@@ -80,7 +81,8 @@ class ResidentMem(AbstractWindowsCommand):
                         if type(fullDllName) == obj.NoneObject:
                             fullDllName = '-----'
                         log_file.write('\t'.join((str(task.UniqueProcessId), str(task.ImageFileName), baseDllName, str(mod.DllBase.v()), str(count_valid_pages), str(total_pages), fullDllName)) + '\n')
-                    yield (task.UniqueProcessId, task.ImageFileName, mod.BaseDllName.v(), mod.DllBase.v(), count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
+                    version = obj.Object("_IMAGE_DOS_HEADER", mod.DllBase, task_space).get_version_info()
+                    yield (task.UniqueProcessId, task.ImageFileName, mod.BaseDllName.v(), mod.DllBase.v(), count_valid_pages, total_pages, mod.FullDllName.v(), dump_file, version.FileInfo.file_version() if version else '')
 
         # Drivers -- part of this code is inspired in moddump plugin 
         mods = dict((mod.DllBase.v(), mod) for mod in modules.lsmod(self.addr_space))
@@ -109,7 +111,8 @@ class ResidentMem(AbstractWindowsCommand):
             total_pages = mod.SizeOfImage / PAGE_SIZE
             if log_file:
                 log_file.write('\t'.join(('--', '--', str(mod.BaseDllName.v()), str(mod.DllBase.v()), str(count_valid_pages), str(total_pages), str(mod.FullDllName.v()))) + '\n')
-            yield ('--', '--', mod.BaseDllName.v(), mod.DllBase.v(), count_valid_pages, total_pages, mod.FullDllName.v(), dump_file )
+            version = obj.Object("_IMAGE_DOS_HEADER", mod.DllBase, task_space).get_version_info()
+            yield ('--', '--', mod.BaseDllName.v(), mod.DllBase.v(), count_valid_pages, total_pages, mod.FullDllName.v(), dump_file,  version.FileInfo.file_version() if version else '')
         
         if self._config.LOGFILE:
             log_file.close()
@@ -120,6 +123,7 @@ class ResidentMem(AbstractWindowsCommand):
                         ('Pid', '4'),
                         ('Process', '12'),
                         ('Module Name', '20'),
+                        ('File Version', '14'),
                         ('Module Base', '[addr]'),
                         ('Resident', '8'),
                         ('Total', '8'),
@@ -131,6 +135,7 @@ class ResidentMem(AbstractWindowsCommand):
                         ('Pid', '4'),
                         ('Process', '12'),
                         ('Module Name', '20'),
+                        ('File Version', '14'),
                         ('Module Base', '[addr]'),
                         ('Resident', '8'),
                         ('Total', '8'),
@@ -142,6 +147,7 @@ class ResidentMem(AbstractWindowsCommand):
         table_header = [('Pid', '4'),
                         ('Process', '12'),
                         ('Module Name', '20'),
+                        ('File Version', '14'),
                         ('Module Base', '[addr]'),
                         ('Resident', '8'),
                         ('Total', '8'),
@@ -151,8 +157,8 @@ class ResidentMem(AbstractWindowsCommand):
         self.table_header(outfd, table_header)
           
         if self._config.DUMP_DIR:
-            for pid, process, module, address, resident_pages, total_pages, path, dump in data:
-                self.table_row(outfd, pid, process, module, address, resident_pages, total_pages, path, dump)
+            for pid, process, module, address, resident_pages, total_pages, path, dump, version in data:
+                self.table_row(outfd, pid, process, module, version, address, resident_pages, total_pages, path, dump)
         else: 
-            for pid, process, module, address, resident_pages, total_pages, path, dump in data:
-                self.table_row(outfd, pid, process, module, address, resident_pages, total_pages, path)
+            for pid, process, module, address, resident_pages, total_pages, path, dump, version in data:
+                self.table_row(outfd, pid, process, module, version, address, resident_pages, total_pages, path)
